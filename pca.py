@@ -47,10 +47,9 @@ webtracker_data = pd.DataFrame(columns=['minify_total', 'responses_200', 'testSt
                    'FirstCPUIdle', 'run', 'step', 'effectiveBps', 'effectiveBpsDoc', 'domTime', 'aft', 'titleTime',
                    'domLoading', 'server_rtt', 'smallImageCount', 'bigImageCount', 'maybeCaptcha',
                    'heroElementTimes.Image', 'heroElementTimes.Heading', 'heroElementTimes.FirstPaintedHero',
-                   'heroElementTimes.LastPaintedHero', 'FirstPaintedHero', 'LastPaintedHero', 'avgRun'])
+                   'heroElementTimes.LastPaintedHero', 'FirstPaintedHero', 'LastPaintedHero', 'avgRun', 'url', 'location'])
 
-# todo: great, gtmetrix json format is different. find a way to unmistakably discern between them... webtracker json has a lot of useless attributes
-# todo: add columns - date from folder name and domain name from file name
+# todo: add columns - date from folder name and domain name from file name. gtmetrix_data has url in column 3
 # todo: solve problem - gtmetrix json has no information on test settings (we need location, page url, browser/mobile device)
 for index, js in enumerate(json_files):
     with open(os.path.join(path_to_json, js)) as json_file:
@@ -60,9 +59,13 @@ for index, js in enumerate(json_files):
             entry = json_text['data']['average']['firstView']
             new_data = list()
             for col in webtracker_data.columns:
-                new_data.append(entry[col])
+                if col == 'url':
+                    new_data.append(json_text['data']['url'])
+                elif col == 'location':
+                    new_data.append(json_text['data']['location'])
+                else:
+                    new_data.append(entry[col])
             webtracker_data.loc[index] = new_data
-            #print(webtracker_data)
 
         else:
             # handle gtmetrix json
@@ -74,6 +77,6 @@ for index, js in enumerate(json_files):
 
 print(gtmetrix_data)
 print(webtracker_data)
-# todo: delete column 3 and 6 from gtmetrix_data (all data have to be int)
+# todo: don't pass columns 3 (url) and 6 (null) to PCA for gtmetrix and last two for webtracker (url, location)
 #pca = PCA(n_components=3)
 #pca.fit(gtmetrix_data)
